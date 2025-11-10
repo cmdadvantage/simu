@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Best Free CCTV Designer: Auto-loaded interactive satellite map, FOV/Rotation, DORI, PDF Reports.">
+  <title>Ultimate CCTV Designer | Free 2025 Tool</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+  <!-- jsPDF + html2canvas -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <style>
+    :root{--primary:#e74c3c;--dark:#2c3e50;--light:#f8f9fa;--gray:#95a5a6;--white:#ffffff}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Segoe UI',Arial,sans-serif;background:#ecf0f1;color:var(--dark);display:flex;min-height:100vh}
+    .sidebar{width:25%;background:var(--white);padding:25px;box-shadow:2px 0 15px rgba(0,0,0,.1);overflow-y:auto;position:fixed;height:100%;z-index:100}
+    .main{margin-left:25%;width:75%;padding:20px;background:var(--light);min-height:100vh}
+    h1{font-size:1.8rem;margin-bottom:10px;color:var(--primary);text-align:center}
+    .subtitle{text-align:center;color:var(--gray);font-size:0.95rem;margin-bottom:25px}
+    .input-group{margin-bottom:22px}
+    label{display:block;font-weight:600;margin-bottom:8px}
+    input[type=text],input[type=file],input[type=range],select{width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;font-size:15px}
+    button{background:var(--primary);color:white;padding:12px 18px;border:none;border-radius:8px;cursor:pointer;font-weight:bold;width:100%;margin-top:8px;font-size:15px;transition:background 0.2s}
+    button:hover{background:#c0392b}
+    .or{text-align:center;margin:20px 0;color:var(--gray);font-weight:600}
+    .simulator{position:relative;width:100%;height:calc(100vh - 40px);background:var(--white);border:2px solid #ddd;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08)}
+    #map{width:100%;height:100%;}
+    .camera-icon{position:absolute;width:42px;height:42px;background:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23e74c3c"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>') center/contain no-repeat;cursor:move;z-index:10;filter:drop-shadow(0 3px 6px rgba(0,0,0,.3))}
+    .fov-cone{position:absolute;z-index:5;opacity:0.3}
+    .dori-zone{stroke-width:2;opacity:0.5}
+    .toolbar{display:flex;justify-content:center;gap:12px;margin:15px 0;flex-wrap:wrap}
+    .tool-btn{background:var(--white);border:2px solid #ddd;padding:10px 16px;border-radius:8px;cursor:pointer;font-weight:600;font-size:14px;transition:all 0.2s}
+    .tool-btn.active{border-color:var(--primary);background:#fdf2f2;color:var(--primary);box-shadow:0 2px 5px rgba(231,76,60,0.3)}
+    #exportBtn{display:block;margin:0 auto;padding:14px 32px;font-size:17px;background:var(--primary);color:white;border:none;border-radius:10px;cursor:pointer}
+    #exportBtn:hover{background:#c0392b}
+    .status-bar{position:fixed;bottom:0;left:25%;right:0;background:var(--white);padding:10px;text-align:center;border-top:1px solid #ddd;font-size:14px}
+    @media(max-width:992px){.sidebar{width:100%;position:relative;height:auto;padding-bottom:20px}.main{margin-left:0;width:100%;padding-top:0}.simulator{height:60vh}.status-bar{left:0}}
+  </style>
+</head>
+<body>
+
+  <!-- LEFT SIDEBAR -->
+  <div class="sidebar">
+    <h1>CCTV Designer Pro</h1>
+    <p class="subtitle">Interactive satellite map loaded – Change address below</p>
+
+    <div class="input-group">
+      <label>Change Address</label>
+      <input type="text" id="addressInput" placeholder="e.g. Pyramids of Giza">
+      <button onclick="loadMap()">Update Map</button>
+    </div>
+
+    <div class="or">OR Upload Floor Plan</div>
+
+    <div class="input-group">
+      <label>Upload Image</label>
+      <input type="file" id="imageUpload" accept="image/*">
+    </div>
+
+    <div class="input-group">
+      <label>Camera Library</label>
+      <select id="cameraPreset">
+        <option value="hikvision4k">Hikvision 4K (90° FOV)</option>
+        <option value="dahua2k">Dahua 2K (60° FOV)</option>
+        <option value="axisptz">Axis PTZ (120° FOV)</option>
+        <option value="custom">Custom</option>
+      </select>
+    </div>
+
+    <div class="input-group">
+      <label>FOV Angle: <span id="fovValue">90</span>°</label>
+      <input type="range" id="fovSlider" min="30" max="120" value="90" oninput="updateFOV(this.value)">
+    </div>
+
+    <div class="input-group">
+      <label>Rotation: <span id="rotValue">0</span>°</label>
+      <input type="range" id="rotSlider" min="0" max="360" value="0" oninput="updateRotation(this.value)">
+    </div>
+
+    <div class="toolbar">
+      <div class="tool-btn active" id="addCamera" onclick="selectTool(event, 'add')">Add Camera</div>
+      <div class="tool-btn" onclick="selectTool(event, 'fov')">Show FOV</div>
+      <div class="tool-btn" onclick="selectTool(event, 'dori')">DORI Zones</div>
+      <div class="tool-btn" onclick="clearAll()">Clear</div>
+    </div>
+
+    <button onclick="exportDesign('png')">Export PNG</button>
+    <button onclick="exportDesign('pdf')">Export PDF Report</button>
+    <button onclick="exportDesign('json')">Save JSON</button>
+    <button onclick="loadDesign()">Load JSON</button>
+    <input type="file" id="loadFile" accept=".json" style="display:none" onchange="loadFromFile(event)">
+  </div>
+
+  <!-- RIGHT DESIGNER -->
+  <div class="main">
+    <div class="simulator" id="simulator">
+      <div id="map" style="width:100%;height:100%;"></div>
+      <canvas id="imageCanvas" style="display:none;"></canvas>
+      <svg id="overlays" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:20"></svg>
+    </div>
+  </div>
+
+  <!-- STATUS BAR -->
+  <div class="status-bar" id="status">Interactive map loaded: Cairo, Egypt – Zoom/pan to explore</div>
+
+  <script>
+    let map, canvas, ctx, svg, currentTool='add', cameras=[], history=[], isDragging=false, dragElement, offsetX, offsetY, fovMode=false, doriMode=false;
+    let totalCoverage = 0; // Initialize totalCoverage
+    const { jsPDF } = window.jspdf;
+
+    function init(){
+      const sim=document.getElementById('simulator');
+      canvas=document.getElementById('imageCanvas'); ctx=canvas.getContext('2d');
+      svg=document.getElementById('overlays');
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+      document.getElementById('imageUpload').addEventListener('change', handleImageUpload);
+      document.getElementById('loadFile').addEventListener('change', loadFromFile);
+      loadDefaultMap(); // Auto-load Cairo satellite
+    }
+
+    function resizeCanvas(){
+      const sim=document.getElementById('simulator');
+      // Ensure sim is visible and has dimensions before trying to get clientWidth/Height
+      if (sim.clientWidth > 0 && sim.clientHeight > 0) {
+        canvas.width=sim.clientWidth; canvas.height=sim.clientHeight;
+        svg.setAttribute('width', sim.clientWidth); svg.setAttribute('height', sim.clientHeight);
+        redrawOverlays();
+      }
+    }
+
+    // AUTO-LOAD INTERACTIVE SATELLITE MAP (Cairo)
+    function loadDefaultMap(){
+      // Destroy existing map instance if it exists to prevent errors
+      if (map) map.remove();
+      map = L.map('map').setView([30.0444, 31.2357], 18); // Cairo, zoom 18
+      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+      }).addTo(map);
+      updateStatus('Interactive map loaded: Cairo, Egypt');
+      enableCameraPlacement();
+    }
+
+    // UPDATE MAP WITH ADDRESS
+    async function loadMap(){
+      const address=document.getElementById('addressInput').value.trim()||'Cairo, Egypt';
+      try{
+        const res=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json`);
+        const data=await res.json();
+        if(data.length>0){
+          const loc=data[0];
+          map.setView([loc.lat, loc.lon], 18);
+          updateStatus(`Map updated: ${address}`);
+        } else console.error('Address not found');
+      } catch(e){console.error('Error searching address', e);}
+    }
+
+    // IMAGE UPLOAD
+    function handleImageUpload(e){
+      const file=e.target.files[0];
+      if(!file) return;
+      const reader=new FileReader();
+      reader.onload=ev=>loadImage(ev.target.result);
+      reader.readAsDataURL(file);
+      // Hide map and show canvas when floor plan is loaded
+      document.getElementById('map').style.display = 'none';
+      canvas.style.display = 'block';
+      updateStatus('Floor plan loaded. Place cameras on the image.');
+    }
+    function loadImage(src){
+      const img=new Image();
+      img.onload=()=>{
+        
+        const ratio=Math.min(canvas.width/img.width, canvas.height/img.height);
+        const w=img.width*ratio, h=img.height*ratio;
+        const x=(canvas.width-w)/2, y=(canvas.height-h)/2;
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        ctx.drawImage(img,x,y,w,h);
+        enableCameraPlacement();
+      };
+      img.src=src;
+    }
+
+    // CAMERA PLACEMENT
+    function enableCameraPlacement(){
+      const sim=document.getElementById('simulator');
+      sim.onclick=e=>{
+        // Check if the click event originated from a camera-icon or during dragging
+        if(currentTool!=='add' || e.target.closest('.camera-icon') || isDragging) return; 
+
+        // Get current settings
+        const fov = parseInt(document.getElementById('fovSlider').value);
+        const rotation = parseInt(document.getElementById('rotSlider').value);
+
+        const cam={id: Date.now(), x: e.offsetX, y: e.offsetY, fov: fov, rotation: rotation};
+        cameras.push(cam);
+        
+        // Create the camera icon element
+        const icon=document.createElement('div');
+        icon.className='camera-icon';
+        icon.id=`cam-${cam.id}`;
+        // Position the center of the 42x42 icon at the click point (offsetX, offsetY)
+        icon.style.left=(e.offsetX-21)+'px';
+        icon.style.top=(e.offsetY-21)+'px';
+        icon.title=`ID: ${cam.id}\nFOV: ${cam.fov}°\nRotation: ${cam.rotation}°\nDouble-click to set current controls`;
+        
+        icon.ondblclick=()=>{
+          // When double-clicked, apply its settings to the sidebar controls
+          editCamera(cam.id);
+          // Also, apply the settings back to the camera itself (in case the sliders were moved)
+          cam.fov = parseInt(document.getElementById('fovSlider').value);
+          cam.rotation = parseInt(document.getElementById('rotSlider').value);
+          redrawOverlays();
+        };
+        
+        sim.appendChild(icon);
+        makeDraggable(icon);
+        history.push(JSON.parse(JSON.stringify(cameras))); // Deep clone for history
+        redrawOverlays();
+      };
+    }
+
+    // CAMERA SETTINGS EDIT
+    function editCamera(id){
+      const cam=cameras.find(c=>c.id===id);
+      if(cam){
+        // Set sidebar controls to this camera's values
+        document.getElementById('fovSlider').value=cam.fov; updateFOV(cam.fov);
+        document.getElementById('rotSlider').value=cam.rotation; updateRotation(cam.rotation);
+        updateStatus(`Editing Camera ${cam.id}. Double-click another camera to switch, or use sliders to update.`);
+      }
+    }
+
+    // UPDATE FUNCTIONS
+    function updateFOV(val){ 
+      document.getElementById('fovValue').textContent=val; 
+      cameras.forEach(cam => { // Update all cameras with current FOV/Rotation
+        cam.fov = parseInt(val);
+      });
+      redrawOverlays(); 
+    }
+    function updateRotation(val){ 
+      document.getElementById('rotValue').textContent=val; 
+      cameras.forEach(cam => { // Update all cameras with current FOV/Rotation
+        cam.rotation = parseInt(val);
+      });
+      redrawOverlays(); 
+    }
+
+    // DRAG MECHANISM
+    function makeDraggable(el){
+      el.onmousedown=ev=>{
+        ev.preventDefault(); // Prevent default drag behavior
+        isDragging=true; dragElement=el;
+        const rect=el.getBoundingClientRect();
+        offsetX=ev.clientX-rect.left;
+        offsetY=ev.clientY-rect.top;
+        document.onmousemove=onMouseMove;
+        document.onmouseup=onMouseUp;
+      };
+    }
+    function onMouseMove(e){
+      if(!isDragging) return;
+      const sim=document.getElementById('simulator');
+      const r=sim.getBoundingClientRect();
+      
+      // Calculate new icon position (top-left corner)
+      let newX = e.clientX - r.left - offsetX;
+      let newY = e.clientY - r.top - offsetY;
+
+      // Boundary check (42x42 icon)
+      newX=Math.max(0,Math.min(newX,r.width-42)); 
+      newY=Math.max(0,Math.min(newY,r.height-42));
+
+      dragElement.style.left=newX+'px'; 
+      dragElement.style.top=newY+'px';
+      
+      // Update camera center coordinates (x/y)
+      const id=parseInt(dragElement.id.split('-')[1]);
+      const cam=cameras.find(c=>c.id===id);
+      cam.x=newX+21; cam.y=newY+21;
+      
+      redrawOverlays();
+    }
+    function onMouseUp(){
+      if(isDragging) history.push(JSON.parse(JSON.stringify(cameras))); // Deep clone for history
+      isDragging=false;
+      document.onmousemove=null;
+      document.onmouseup=null;
+      updateStatus();
+    }
+
+    // TOOLS
+    function selectTool(e, tool){
+      currentTool=tool;
+      document.querySelectorAll('.tool-btn').forEach(b=>b.classList.remove('active'));
+      e.currentTarget.classList.add('active'); // Use currentTarget for better event handling
+      fovMode=tool==='fov'; 
+      doriMode=tool==='dori';
+      redrawOverlays();
+    }
+    function clearAll(){
+      cameras=[]; 
+      document.querySelectorAll('.camera-icon').forEach(c=>c.remove()); 
+      svg.innerHTML=''; 
+      history=[]; 
+      updateStatus('All cameras cleared.');
+    }
+    function redrawAll(){
+      document.querySelectorAll('.camera-icon').forEach(c=>c.remove());
+      const sim = document.getElementById('simulator');
+      cameras.forEach(cam => {
+        const icon=document.createElement('div');
+        icon.className='camera-icon';
+        icon.id=`cam-${cam.id}`;
+        icon.style.left=(cam.x-21)+'px';
+        icon.style.top=(cam.y-21)+'px';
+        icon.title=`ID: ${cam.id}\nFOV: ${cam.fov}°\nRotation: ${cam.rotation}°\nDouble-click to set current controls`;
+        icon.ondblclick=()=>editCamera(cam.id);
+        sim.appendChild(icon);
+        makeDraggable(icon);
+      });
+      redrawOverlays();
+      updateStatus('Design loaded successfully.');
+    }
+
+    // OVERLAYS
+    function redrawOverlays(){
+      svg.innerHTML='';
+      totalCoverage=0;
+      
+      // For the purposes of this 2D visualization, assuming 100px equals max distance for visibility.
+      // The DORI calculation below will use distances scaled to the screen size (px).
+      const maxDistance = 200; 
+
+      cameras.forEach(cam=>{
+        const x=cam.x, y=cam.y;
+        const rad=Math.PI/180;
+        const halfFov=(cam.fov/2)*rad;
+        // Adjust rotation offset so 0 is North (up)
+        const dir=(cam.rotation - 90)*rad; 
+        
+        // FOV Cone points
+        const tipX=x+Math.cos(dir)*maxDistance, tipY=y+Math.sin(dir)*maxDistance;
+        const leftX=x+Math.cos(dir-halfFov)*maxDistance, leftY=y+Math.sin(dir-halfFov)*maxDistance;
+        const rightX=x+Math.cos(dir+halfFov)*maxDistance, rightY=y+Math.sin(dir+halfFov)*maxDistance;
+
+        if(fovMode){
+          // Draw FOV Cone
+          const cone=document.createElementNS('http://www.w3.org/2000/svg','path');
+          // M x y L leftX leftY A radius radius startAngle endAngle isLargeArcFlag sweepFlag rightX rightY Z
+          // For simplicity, we draw a triangle shape instead of an arc segment
+          cone.setAttribute('d', `M ${x} ${y} L ${leftX} ${leftY} L ${rightX} ${rightY} Z`);
+          cone.setAttribute('fill', 'rgba(231,76,60,0.3)');
+          cone.setAttribute('stroke', 'var(--primary)');
+          cone.setAttribute('stroke-width', '2');
+          svg.appendChild(cone);
+        }
+
+        if(doriMode){
+          // DORI: Detection, Observation, Recognition, Identification (Approximate values in px)
+          // Assuming the maxDistance of 200px corresponds to 50m in a typical scene for D:Detection.
+          // D: ~50m, O: ~25m, R: ~12m, I: ~6m.
+          // Scaled Radii in pixels (200px = max distance for this visualization)
+          const radii = [6/50*maxDistance, 12/50*maxDistance, 25/50*maxDistance, 50/50*maxDistance];
+          const colors = ['#3498db', '#2ecc71', '#f1c40f', '#e74c3c']; // ID, R, O, D (Blue, Green, Yellow, Red)
+          
+          radii.forEach((r,i)=>{
+            const zone=document.createElementNS('http://www.w3.org/2000/svg','circle');
+            zone.setAttribute('cx',x); zone.setAttribute('cy',y); zone.setAttribute('r',r);
+            zone.setAttribute('fill','none'); 
+            zone.setAttribute('stroke', colors[i]);
+            zone.setAttribute('stroke-dasharray', i===3 ? '5,5' : 'none');
+            svg.appendChild(zone);
+          });
+        }
+
+        totalCoverage += cam.fov; // Just summing up FOVs for now, not true geometric coverage
+      });
+
+      // Simple approximation for total coverage percentage (max 100%)
+      let coveragePercent = cameras.length > 0 ? Math.min(100, (totalCoverage / 360) * 10) : 0; 
+
+      document.getElementById('status').innerHTML=`Coverage: ${Math.round(coveragePercent)}% | Cameras: ${cameras.length} | Tool: ${currentTool.toUpperCase()}`;
+    }
+
+    // EXPORT
+    async function exportDesign(type){
+      document.getElementById('status').innerHTML = 'Generating report... Please wait.';
+      // Temporarily hide the Leaflet controls and status bar for a clean screenshot
+      const controls = document.querySelector('.leaflet-control-container');
+      const status = document.querySelector('.status-bar');
+      if (controls) controls.style.display = 'none';
+      if (status) status.style.display = 'none';
+
+      const sim=document.getElementById('simulator');
+      
+      const shot=await html2canvas(sim, {useCORS: true});
+        
+      // Restore hidden elements
+      if (controls) controls.style.display = 'block';
+      if (status) status.style.display = 'block';
+
+      if(type==='png'){
+        const a=document.createElement('a'); a.download='cctv-design.png'; a.href=shot.toDataURL('image/png'); a.click();
+        updateStatus('PNG exported.');
+      } else if(type==='json'){
+        const blob=new Blob([JSON.stringify(cameras, null, 2)], {type:'application/json'});
+        const a=document.createElement('a'); a.download='cctv-design.json'; a.href=URL.createObjectURL(blob); a.click();
+        updateStatus('Design saved to JSON.');
+      } else if(type==='pdf'){
+        const pdf=new jsPDF('p', 'mm', 'a4');
+        const imgData = shot.toDataURL('image/png');
+        const imgWidth = 190;
+        const imgHeight = shot.height * imgWidth / shot.width;
+        
+        // Map Screenshot
+        pdf.text('CCTV Surveillance System Design Report', 10, 15);
+        pdf.addImage(imgData,'PNG', 10, 20, imgWidth, imgHeight);
+
+        // Camera List
+        let y = 20 + imgHeight + 10;
+        pdf.text(`Total Cameras: ${cameras.length}`, 10, y);
+        y += 7;
+        pdf.text(`Estimated Coverage Index: ${Math.round(coveragePercent)}%`, 10, y);
+        y += 10;
+
+        pdf.setFontSize(10);
+        cameras.forEach((cam, index) => {
+          pdf.text(`Camera ${index + 1} (ID: ${cam.id}): FOV ${cam.fov}°, Rotation ${cam.rotation}°`, 10, y);
+          y += 5;
+        });
+
+        pdf.save('cctv-report.pdf');
+        updateStatus('PDF report generated.');
+      }
+    }
+    function loadDesign(){document.getElementById('loadFile').click();}
+    function loadFromFile(e){
+      const file=e.target.files[0]; 
+      if(file){
+        const r=new FileReader(); 
+        r.onload=ev=>{
+          try {
+            cameras=JSON.parse(ev.target.result); 
+            redrawAll();
+          } catch (error) {
+            console.error("Failed to parse JSON:", error);
+            updateStatus('Error loading file. Invalid JSON format.');
+          }
+        }; 
+        r.readAsText(file);
+      }
+    }
+
+    function updateStatus(msg=''){
+      document.getElementById('status').innerHTML=msg||`Ready | Coverage: ${Math.round(coveragePercent)}% | Cameras: ${cameras.length} | Tool: ${currentTool.toUpperCase()}`;
+    }
+
+    // PRESET
+    document.getElementById('cameraPreset').onchange=e=>{
+      const presets={'hikvision4k':90,'dahua2k':60,'axisptz':120};
+      const fov=presets[e.target.value]||90;
+      
+      // Update the slider and all cameras
+      document.getElementById('fovSlider').value=fov; 
+      updateFOV(fov);
+      
+      updateStatus(`Preset ${e.target.value} loaded. FOV set to ${fov}°`);
+    };
+
+    window.onload=init;
+  </script>
+</body>
+</html>
