@@ -1,343 +1,483 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Best Free CCTV Designer: Preloaded interactive satellite map, FOV/Rotation, DORI, PDF Reports.">
-  <title>Ultimate CCTV Designer | Free 2025 Tool</title>
-  <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-  <!-- jsPDF + html2canvas -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-  <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-  <style>
-    :root{--primary:#e74c3c;--dark:#2c3e50;--light:#f8f9fa;--gray:#95a5a6;--white:#ffffff}
-    *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:'Segoe UI',Arial,sans-serif;background:#ecf0f1;color:var(--dark);display:flex;min-height:100vh}
-    .sidebar{width:25%;background:var(--white);padding:25px;box-shadow:2px 0 15px rgba(0,0,0,.1);overflow-y:auto;position:fixed;height:100%;z-index:100}
-    .main{margin-left:25%;width:75%;padding:20px;background:var(--light);min-height:100vh}
-    h1{font-size:1.8rem;margin-bottom:10px;color:var(--primary);text-align:center}
-    .subtitle{text-align:center;color:var(--gray);font-size:0.95rem;margin-bottom:25px}
-    .input-group{margin-bottom:22px;position:relative}
-    label{display:block;font-weight:600;margin-bottom:8px}
-    input[type=text],input[type=file],input[type=range],select{width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;font-size:15px}
-    button{background:var(--primary);color:white;padding:12px 18px;border:none;border-radius:8px;cursor:pointer;font-weight:bold;width:100%;margin-top:8px;font-size:15px}
-    button:hover{background:#c0392b}
-    .or{text-align:center;margin:20px 0;color:var(--gray);font-weight:600}
-    .simulator{position:relative;width:100%;height:calc(100vh - 40px);background:var(--white);border:2px solid #ddd;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08)}
-    #map{width:100%;height:100%;}
-    .camera-icon{position:absolute;width:42px;height:42px;background:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23e74c3c"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>') center/contain no-repeat;cursor:move;z-index:10;filter:drop-shadow(0 3px 6px rgba(0,0,0,.3))}
-    .fov-cone{position:absolute;z-index:5;opacity:0.3}
-    .dori-zone{stroke-width:2;opacity:0.5}
-    .toolbar{display:flex;justify-content:center;gap:12px;margin:15px 0;flex-wrap:wrap}
-    .tool-btn{background:var(--white);border:2px solid #ddd;padding:10px 16px;border-radius:8px;cursor:pointer;font-weight:600;font-size:14px}
-    .tool-btn.active{border-color:var(--primary);background:#fdf2f2;color:var(--primary)}
-    #exportBtn{display:block;margin:0 auto;padding:14px 32px;font-size:17px;background:var(--primary);color:white;border:none;border-radius:10px;cursor:pointer}
-    #exportBtn:hover{background:#c0392b}
-    .status-bar{position:fixed;bottom:0;left:25%;right:0;background:var(--white);padding:10px;text-align:center;border-top:1px solid #ddd;font-size:14px}
-    .suggestions{position:absolute;top:100%;left:0;right:0;background:white;border:1px solid #ddd;border-top:none;border-radius:0 0 8px 8px;max-height:200px;overflow-y:auto;z-index:1000;display:none}
-    .suggestion{padding:10px;cursor:pointer;font-size:14px}
-    .suggestion:hover{background:#f0f0f0}
-    .suggestion em{color:var(--primary);font-weight:bold}
-    #startDesignBtn{background:#27ae60;margin:15px auto 0;display:block;padding:14px 32px;font-size:17px}
-    #startDesignBtn:hover{background:#1e8449}
-    .zoom-controls{position:absolute;top:10px;right:10px;z-index:1000;display:flex;flex-direction:column;gap:5px}
-    .zoom-btn{background:white;border:1px solid #ccc;padding:8px 12px;border-radius:4px;cursor:pointer;font-weight:bold;box-shadow:0 2px 5px rgba(0,0,0,.2)}
-    .zoom-btn:hover{background:#f0f0f0}
-    @media(max-width:992px){.sidebar{width:100%;position:relative;height:auto;padding-bottom:20px}.main{margin-left:0;width:100%;padding-top:0}.simulator{height:60vh}.status-bar{left:0}}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional CCTV Design Simulator</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom Styles for better aesthetics and clarity */
+        :root {
+            --color-id: #dc2626; /* Red for Identification */
+            --color-rec: #fb923c; /* Orange for Recognition */
+            --color-det: #facc15; /* Yellow for Detection */
+            --color-mon: #3b82f6; /* Blue for Monitoring/General */
+            --canvas-bg: #e5e7eb; /* Light gray background for contrast */
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            min-height: 100vh;
+        }
+        /* Style the canvas to ensure it's clearly visible */
+        #cctvCanvas {
+            border: 1px solid #d1d5db;
+            background-color: var(--canvas-bg);
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            touch-action: none; /* Prevent unwanted touch behavior on canvas */
+        }
+        /* Custom styled range input */
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            background: #d1ddff;
+            outline: none;
+            opacity: 0.7;
+            -webkit-transition: .2s;
+            transition: opacity .2s;
+            border-radius: 4px;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #4f46e5;
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+        }
+    </style>
 </head>
-<body>
-  <!-- LEFT SIDEBAR -->
-  <div class="sidebar">
-    <h1>CCTV Designer Pro</h1>
-    <p class="subtitle">Interactive satellite map preloaded – Change address below</p>
-    <div class="input-group">
-      <label>Change Address</label>
-      <input type="text" id="addressInput" placeholder="e.g. Pyramids of Giza">
-      <div id="suggestions" class="suggestions"></div>
-      <button onclick="loadMap()">Update Map</button>
+<body class="p-4 md:p-8">
+
+<div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <header class="text-center mb-8">
+        <h1 class="text-3xl md:text-4xl font-extrabold text-indigo-700">CCTV Design & Coverage Simulator</h1>
+        <p class="text-gray-500 mt-1">Visualize DORI zones and calculate system capacity in real-time.</p>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        <!-- Input Panel (Column 1) -->
+        <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-lg h-full">
+            <h2 class="text-2xl font-semibold mb-6 text-gray-800 border-b pb-2">Camera Parameters</h2>
+
+            <form id="cameraConfig" class="space-y-4">
+                <!-- Resolution -->
+                <div>
+                    <label for="resolution" class="block text-sm font-medium text-gray-700">Horizontal Resolution (Pixels)</label>
+                    <select id="resolution" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 bg-gray-50 focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="1920">1080p (1920 px)</option>
+                        <option value="2560" selected>2K/4MP (2560 px)</option>
+                        <option value="3840">4K/8MP (3840 px)</option>
+                        <option value="5120">5K/12MP (5120 px)</option>
+                    </select>
+                </div>
+
+                <!-- Sensor Size -->
+                <div>
+                    <label for="sensorSize" class="block text-sm font-medium text-gray-700">Sensor Width (mm) - 1/2.8" is ~5.1mm</label>
+                    <input type="number" id="sensorSize" value="5.1" step="0.1" min="1" max="10" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+
+                <!-- Horizontal Field of View (HFOV) -->
+                <div>
+                    <label for="hfov" class="block text-sm font-medium text-gray-700">Horizontal FoV (Degrees) <span id="hfovValue" class="font-bold text-indigo-600">60</span>&deg;</label>
+                    <input type="range" id="hfov" min="15" max="120" value="60" step="1" class="mt-2">
+                </div>
+
+                <!-- Mounting Height -->
+                <div>
+                    <label for="mountingHeight" class="block text-sm font-medium text-gray-700">Mounting Height (Meters)</label>
+                    <input type="number" id="mountingHeight" value="3.5" step="0.1" min="1" max="10" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+            </form>
+        </div>
+
+        <!-- Simulation & Controls (Column 2) -->
+        <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-lg h-full flex flex-col">
+            <h2 class="text-2xl font-semibold mb-4 text-gray-800 border-b pb-2">2D Coverage Simulation</h2>
+            <div class="flex-grow relative aspect-[3/2] min-h-[300px]">
+                <!-- Canvas for 2D Simulation -->
+                <canvas id="cctvCanvas" class="w-full h-full"></canvas>
+            </div>
+            
+            <div class="mt-6">
+                <h3 class="text-lg font-semibold mb-2 text-gray-700">Legend (DORI Zones)</h3>
+                <div class="flex flex-wrap gap-4 text-sm">
+                    <span class="flex items-center"><div class="w-3 h-3 rounded-full mr-2" style="background-color: var(--color-id);"></div>Identification (&gt;250 PPM)</span>
+                    <span class="flex items-center"><div class="w-3 h-3 rounded-full mr-2" style="background-color: var(--color-rec);"></div>Recognition (125-250 PPM)</span>
+                    <span class="flex items-center"><div class="w-3 h-3 rounded-full mr-2" style="background-color: var(--color-det);"></div>Detection (62-125 PPM)</span>
+                    <span class="flex items-center"><div class="w-3 h-3 rounded-full mr-2" style="background-color: var(--color-mon);"></div>Monitoring (&lt;62 PPM)</span>
+                </div>
+            </div>
+        </div>
     </div>
-    <button id="startDesignBtn" onclick="startDesignMode()">Start Design</button>
-    <div class="or">OR Upload Floor Plan</div>
-    <div class="input-group">
-      <label>Upload Image</label>
-      <input type="file" id="imageUpload" accept="image/*">
+
+    <!-- Output Panel (Below simulation) -->
+    <div class="mt-8 bg-white p-6 rounded-xl shadow-lg grid grid-cols-1 md:grid-cols-3 gap-6">
+        <h2 class="text-2xl md:col-span-3 font-semibold text-gray-800 border-b pb-2 mb-4">Calculated Results</h2>
+
+        <!-- Focal Length -->
+        <div class="p-4 bg-indigo-50 rounded-lg">
+            <p class="text-sm font-medium text-indigo-700">Required Focal Length</p>
+            <p id="focalLengthOutput" class="text-2xl font-bold text-indigo-900 mt-1">-- mm</p>
+        </div>
+
+        <!-- Pixel Density (PPM) at 10m -->
+        <div class="p-4 bg-green-50 rounded-lg">
+            <p class="text-sm font-medium text-green-700">PPM at 10 Meters (Target)</p>
+            <p id="ppm10mOutput" class="text-2xl font-bold text-green-900 mt-1">-- PPM</p>
+        </div>
+
+        <!-- Bandwidth & Storage -->
+        <div class="p-4 bg-purple-50 rounded-lg md:col-span-1">
+            <p class="text-sm font-medium text-purple-700">Est. Bandwidth / Storage (H.264, 15 FPS)</p>
+            <p id="networkOutput" class="text-lg font-bold text-purple-900 mt-1">-- Mbps / -- GB/Day</p>
+        </div>
     </div>
-    <div class="input-group">
-      <label>Camera Library</label>
-      <select id="cameraPreset">
-        <option value="hikvision4k">Hikvision 4K (90° FOV)</option>
-        <option value="dahua2k">Dahua 2K (60° FOV)</option>
-        <option value="axisptz">Axis PTZ (120° FOV)</option>
-        <option value="custom">Custom</option>
-      </select>
-    </div>
-    <div class="input-group">
-      <label>FOV Angle: <span id="fovValue">90</span>°</label>
-      <input type="range" id="fovSlider" min="30" max="120" value="90" oninput="updateFOV(this.value)">
-    </div>
-    <div class="input-group">
-      <label>Rotation: <span id="rotValue">0</span>°</label>
-      <input type="range" id="rotSlider" min="0" max="360" value="0" oninput="updateRotation(this.value)">
-    </div>
-    <div class="toolbar">
-      <div class="tool-btn active" id="addCamera" onclick="selectTool('add')">Add Camera</div>
-      <div class="tool-btn" onclick="selectTool('fov')">Show FOV</div>
-      <div class="tool-btn" onclick="selectTool('dori')">DORI Zones</div>
-      <div class="tool-btn" onclick="clearAll()">Clear</div>
-    </div>
-    <button onclick="exportDesign('png')">Export PNG</button>
-    <button onclick="exportDesign('pdf')">Export PDF Report</button>
-    <button onclick="exportDesign('json')">Save JSON</button>
-    <button onclick="loadDesign()">Load JSON</button>
-    <input type="file" id="loadFile" accept=".json" style="display:none" onchange="loadFromFile(event)">
-  </div>
-  <!-- RIGHT DESIGNER -->
-  <div class="main">
-    <div class="simulator" id="simulator">
-      <div id="map"></div>
-      <!-- ZOOM CONTROLS -->
-      <div class="zoom-controls">
-        <div class="zoom-btn" onclick="map.zoomIn()">+</div>
-        <div class="zoom-btn" onclick="map.zoomOut()">–</div>
-      </div>
-      <canvas id="designCanvas"></canvas>
-      <svg id="overlays" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:20"></svg>
-    </div>
-  </div>
-  <div class="status-bar" id="status">Preloaded map: Cairo, Egypt – Zoom/pan to explore</div>
-  <script>
-    let map, canvas, ctx, svg, currentTool='add', cameras=[], history=[], isDragging=false, dragElement, offsetX, offsetY, fovMode=false, doriMode=false, designMode=false;
-    const { jsPDF } = window.jspdf;
-    function init(){
-      canvas = document.getElementById('designCanvas'); ctx = canvas.getContext('2d');
-      svg = document.getElementById('overlays');
-      resizeCanvas();
-      window.addEventListener('resize', resizeCanvas);
-      document.getElementById('imageUpload').addEventListener('change', handleImageUpload);
-      document.getElementById('loadFile').addEventListener('change', loadFromFile);
-      // Autocomplete setup
-      const input = document.getElementById('addressInput');
-      const suggestions = document.getElementById('suggestions');
-      let debounce;
-      input.addEventListener('input', () => {
-        clearTimeout(debounce);
-        debounce = setTimeout(() => searchAddress(input.value), 300);
-      });
-      input.addEventListener('focus', () => {
-        if(input.value) searchAddress(input.value);
-      });
-      suggestions.addEventListener('click', e => {
-        if(e.target.classList.contains('suggestion')){
-          input.value = e.target.dataset.full;
-          suggestions.style.display = 'none';
-          loadMap();
-        }
-      });
-      loadDefaultMap();
-    }
-    function resizeCanvas(){
-      const sim = document.getElementById('simulator');
-      canvas.width = sim.clientWidth; canvas.height = sim.clientHeight;
-      svg.setAttribute('width', sim.clientWidth); svg.setAttribute('height', sim.clientHeight);
-      if(designMode) redrawOverlays();
-    }
-    // PRELOADED MAP
-    function loadDefaultMap(){
-      map = L.map('map', {
-        zoomControl: false // Remove default zoom to use custom
-      }).setView([30.0444, 31.2357], 18);
-      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-      }).addTo(map);
-      updateStatus('Preloaded map: Cairo, Egypt – Ready to design');
-      enableCameraPlacement();
-    }
-    // AUTOCOMPLETE + TYPO FIX
-    async function searchAddress(query){
-      if(!query.trim()){ document.getElementById('suggestions').style.display='none'; return; }
-      try{
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=5&addressdetails=1`);
-        const data = await res.json();
-        const suggestions = document.getElementById('suggestions');
-        suggestions.innerHTML = '';
-        if(data.length>0){
-          data.forEach(item => {
-            const div = document.createElement('div');
-            div.className = 'suggestion';
-            div.dataset.full = item.display_name;
-            const highlight = item.display_name.replace(new RegExp(query, 'gi'), match => `<em>${match}</em>`);
-            div.innerHTML = highlight;
-            suggestions.appendChild(div);
-          });
-          suggestions.style.display = 'block';
-        } else {
-          suggestions.innerHTML = `<div class="suggestion">No results – try "Pyramids of Giza"</div>`;
-          suggestions.style.display = 'block';
-        }
-      } catch(e){
-        console.error(e);
-      }
-    }
-    // LOAD MAP
-    async function loadMap(){
-      const address = document.getElementById('addressInput').value.trim() || 'Cairo, Egypt';
-      try{
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`);
-        const data = await res.json();
-        if(data.length>0){
-          map.setView([data[0].lat, data[0].lon], 18);
-          updateStatus(`Map updated: ${data[0].display_name.split(',')[0]}`);
-        } else {
-          alert('Not found – check spelling or try "Pyramids of Giza"');
-        }
-      } catch(e){ alert('Search error'); }
-      document.getElementById('suggestions').style.display='none';
-    }
-    // IMAGE UPLOAD
-    function handleImageUpload(e){
-      const file=e.target.files[0];
-      if(!file) return;
-      const reader=new FileReader();
-      reader.onload=ev=>loadImage(ev.target.result);
-      reader.readAsDataURL(file);
-    }
-    function loadImage(src){
-      const img=new Image();
-      img.onload=()=>{
-        document.getElementById('map').style.display='none';
-        canvas.style.display='block';
-        const ratio=Math.min(canvas.width/img.width, canvas.height/img.height);
-        const w=img.width*ratio, h=img.height*ratio;
-        const x=(canvas.width-w)/2, y=(canvas.height-h)/2;
-        ctx.clearRect(0,0,canvas.width,canvas.height);
-        ctx.drawImage(img,x,y,w,h);
-        designMode = true;
-        enableCameraPlacement();
-      };
-      img.src=src;
-    }
-    // CAMERA PLACEMENT
-    function enableCameraPlacement(){
-      const sim=document.getElementById('simulator');
-      sim.onclick=e=>{
-        if(currentTool!=='add') return;
-        const cam={id: Date.now(), x: e.offsetX, y: e.offsetY, fov: parseInt(document.getElementById('fovSlider').value), rotation: parseInt(document.getElementById('rotSlider').value)};
-        cameras.push(cam);
-        const icon=document.createElement('div');
-        icon.className='camera-icon';
-        icon.id=`cam-${cam.id}`;
-        icon.style.left=(e.offsetX-21)+'px';
-        icon.style.top=(e.offsetY-21)+'px';
-        icon.title='Double-click to edit';
-        icon.ondblclick=()=>editCamera(cam.id);
-        sim.appendChild(icon);
-        makeDraggable(icon);
-        history.push([...cameras]);
-        redrawOverlays();
-        updateStatus();
-      };
-    }
-    function editCamera(id){
-      const cam=cameras.find(c=>c.id===id);
-      if(cam){
-        document.getElementById('fovSlider').value=cam.fov; updateFOV(cam.fov);
-        document.getElementById('rotSlider').value=cam.rotation; updateRotation(cam.rotation);
-      }
-    }
-    function updateFOV(val){ document.getElementById('fovValue').textContent=val; redrawOverlays(); }
-    function updateRotation(val){ document.getElementById('rotValue').textContent=val; redrawOverlays(); }
-    // DRAG
-    function makeDraggable(el){
-      el.onmousedown=ev=>{
-        isDragging=true; dragElement=el;
-        const rect=el.getBoundingClientRect();
-        offsetX=ev.clientX-rect.left;
-        offsetY=ev.clientY-rect.top;
-        document.onmousemove=onMouseMove;
-        document.onmouseup=onMouseUp;
-      };
-    }
-    function onMouseMove(e){
-      if(!isDragging) return;
-      const sim=document.getElementById('simulator');
-      const r=sim.getBoundingClientRect();
-      let x=e.clientX-r.left-offsetX, y=e.clientY-r.top-offsetY;
-      x=Math.max(0,Math.min(x,r.width-42)); y=Math.max(0,Math.min(y,r.height-42));
-      dragElement.style.left=x+'px'; dragElement.style.top=y+'px';
-      const id=parseInt(dragElement.id.split('-')[1]);
-      const cam=cameras.find(c=>c.id===id);
-      cam.x=x+21; cam.y=y+21;
-      redrawOverlays();
-    }
-    function onMouseUp(){isDragging=false;document.onmousemove=null;document.onmouseup=null; history.push([...cameras]);}
-    function selectTool(tool){
-      currentTool=tool;
-      document.querySelectorAll('.tool-btn').forEach(b=>b.classList.remove('active'));
-      event.target.classList.add('active');
-      fovMode=tool==='fov'; doriMode=tool==='dori';
-      redrawOverlays();
-    }
-    function clearAll(){cameras=[]; document.querySelectorAll('.camera-icon').forEach(c=>c.remove()); svg.innerHTML=''; history=[]; updateStatus();}
-    function redrawOverlays(){
-      svg.innerHTML='';
-      let totalCoverage=0;
-      cameras.forEach(cam=>{
-        const x=cam.x, y=cam.y;
-        const rad=Math.PI/180;
-        const halfFov=(cam.fov/2)*rad;
-        const dir=cam.rotation*rad;
-        const tipX=x+Math.cos(dir)*currentFovDist, tipY=y+Math.sin(dir)*currentFovDist;
-        const leftX=x+Math.cos(dir-halfFov)*currentFovDist, leftY=y+Math.sin(dir-halfFov)*currentFovDist;
-        const rightX=x+Math.cos(dir+halfFov)*currentFovDist, rightY=y+Math.sin(dir+halfFov)*currentFovDist;
-        if(fovMode){
-          const cone=document.createElementNS('http://www.w3.org/2000/svg','path');
-          cone.setAttribute('d', `M ${x} ${y} L ${leftX} ${leftY} L ${tipX} ${tipY} L ${rightX} ${rightY} Z`);
-          cone.setAttribute('fill', 'rgba(231,76,60,0.3)');
-          svg.appendChild(cone);
-        }
-        if(doriMode){
-          [25,50,100,250].forEach((ppf,i)=>{
-            const r=1000/ppf;
-            const zone=document.createElementNS('http://www.w3.org/2000/svg','circle');
-            zone.setAttribute('cx',x); zone.setAttribute('cy',y); zone.setAttribute('r',r);
-            zone.setAttribute('fill','none'); zone.setAttribute('stroke', i===3?'green':i===2?'blue':i===1?'yellow':'red');
-            svg.appendChild(zone);
-          });
-        }
-        totalCoverage += cam.fov / 360 * 100;
-      });
-      if(totalCoverage>100) totalCoverage=100;
-      document.getElementById('status').innerHTML=`Coverage: ${Math.round(totalCoverage)}% | Cameras: ${cameras.length}`;
-    }
-    async function exportDesign(type){
-      const sim=document.getElementById('simulator');
-      const shot=await html2canvas(sim);
-      if(type==='png'){
-        const a=document.createElement('a'); a.download='cctv-design.png'; a.href=shot.toDataURL(); a.click();
-      } else if(type==='json'){
-        const blob=new Blob([JSON.stringify(cameras)], {type:'application/json'});
-        const a=document.createElement('a'); a.download='cctv-design.json'; a.href=URL.createObjectURL(blob); a.click();
-      } else if(type==='pdf'){
-        const pdf=new jsPDF();
-        pdf.addImage(shot.toDataURL(),'PNG',10,10,180,120);
-        pdf.text(`CCTV Report: ${cameras.length} Cameras | Coverage: ${Math.round(totalCoverage)}%`,10,140);
-        pdf.save('cctv-report.pdf');
-      }
-    }
-    function loadDesign(){document.getElementById('loadFile').click();}
-    function loadFromFile(e){const file=e.target.files[0]; if(file){const r=new FileReader(); r.onload=ev=>{cameras=JSON.parse(ev.target.result); if(designMode) redrawOverlays();}; r.readAsText(file);}}
-    function updateStatus(msg=''){document.getElementById('status').innerHTML=msg||'Ready';}
-    document.getElementById('cameraPreset').onchange=e=>{
-      const presets={'hikvision4k':90,'dahua2k':60,'axisptz':120};
-      const fov=presets[e.target.value]||90;
-      document.getElementById('fovSlider').value=fov; updateFOV(fov);
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const canvas = document.getElementById('cctvCanvas');
+    const ctx = canvas.getContext('2d');
+    const configForm = document.getElementById('cameraConfig');
+    const hfovRange = document.getElementById('hfov');
+    const hfovValueSpan = document.getElementById('hfovValue');
+    const focalLengthOutput = document.getElementById('focalLengthOutput');
+    const ppm10mOutput = document.getElementById('ppm10mOutput');
+    const networkOutput = document.getElementById('networkOutput');
+
+    // DORI standards in Pixels Per Meter (PPM)
+    const DORI_PPM = {
+        ID: 250, // Identification
+        REC: 125, // Recognition
+        DET: 62,  // Detection
+        MON: 31   // Monitoring (This will be the minimum draw limit)
     };
-    window.onload=init;
-  </script>
+
+    const DORI_COLORS = {
+        ID: 'rgba(220, 38, 38, 0.5)',    // Red
+        REC: 'rgba(251, 146, 60, 0.5)',  // Orange
+        DET: 'rgba(250, 204, 21, 0.5)',  // Yellow
+        MON: 'rgba(59, 130, 246, 0.5)'   // Blue
+    };
+
+    let cameraState = {
+        resolution: 2560, // Horizontal pixels
+        sensorSize: 5.1,  // Sensor width in mm (1/2.8")
+        hfov: 60,         // Horizontal Field of View in degrees
+        mountingHeight: 3.5, // Meters
+        maxDistance: 30, // Max distance for drawing the cone in meters
+        scale: 1, // Pixels per meter on canvas (calculated dynamically)
+        
+        // Calculated results
+        focalLength: 0,
+        ppmAt10m: 0,
+        fovWidthAt10m: 0,
+        doriDistances: {}
+    };
+
+    /**
+     * Converts degrees to radians.
+     * @param {number} degrees
+     * @returns {number} radians
+     */
+    const toRadians = (degrees) => degrees * (Math.PI / 180);
+
+    /**
+     * Calculates the required focal length and FoV width.
+     * Updates the cameraState object with new values.
+     */
+    const calculateCoverage = () => {
+        const hfovRad = toRadians(cameraState.hfov);
+
+        // 1. Calculate Focal Length (f in mm)
+        // f = sensorWidth / (2 * tan(HFOV/2))
+        const focalLength = cameraState.sensorSize / (2 * Math.tan(hfovRad / 2));
+        cameraState.focalLength = parseFloat(focalLength.toFixed(2));
+
+        // 2. Calculate FoV Width at a specific distance (10 meters used as reference)
+        // W = 2 * D * tan(HFOV/2)
+        const refDistance = 10; // meters
+        const fovWidthAt10m = 2 * refDistance * Math.tan(hfovRad / 2);
+        cameraState.fovWidthAt10m = parseFloat(fovWidthAt10m.toFixed(2));
+
+        // 3. Calculate PPM at reference distance
+        // PPM = Resolution / FoV Width (in meters)
+        const ppmAt10m = cameraState.resolution / fovWidthAt10m;
+        cameraState.ppmAt10m = Math.round(ppmAt10m);
+
+        // 4. Calculate DORI Distances (Distance D for a required PPM)
+        // D = (Resolution / PPM_Target) / (2 * tan(HFOV/2))
+        const calcDistance = (ppmTarget) => {
+            if (ppmTarget === 0) return 0;
+            return (cameraState.resolution / ppmTarget) / (2 * Math.tan(hfovRad / 2));
+        };
+
+        cameraState.doriDistances = {
+            ID: parseFloat(calcDistance(DORI_PPM.ID).toFixed(2)),
+            REC: parseFloat(calcDistance(DORI_PPM.REC).toFixed(2)),
+            DET: parseFloat(calcDistance(DORI_PPM.DET).toFixed(2)),
+            MON: parseFloat(calcDistance(DORI_PPM.MON).toFixed(2))
+        };
+        
+        // Update max distance based on the Monitoring distance + a buffer
+        cameraState.maxDistance = Math.max(30, cameraState.doriDistances.MON + 5);
+    };
+    
+    /**
+     * Calculates estimated bandwidth and storage requirements.
+     * Uses simplified estimates for H.264 at 15 FPS.
+     * @returns {{bandwidthMbps: number, storageGBPerDay: number}}
+     */
+    const calculateNetworkCapacity = () => {
+        // Base bitrate assumptions (rough estimate for H.264, 15 FPS, based on resolution and scene complexity)
+        // These are estimates and depend heavily on actual codec/scene/quality settings.
+        let baseBitrateKbps;
+        switch(cameraState.resolution) {
+            case 1920: // 1080p
+                baseBitrateKbps = 3000; // ~3 Mbps
+                break;
+            case 2560: // 2K/4MP
+                baseBitrateKbps = 6000; // ~6 Mbps
+                break;
+            case 3840: // 4K/8MP
+                baseBitrateKbps = 10000; // ~10 Mbps
+                break;
+            case 5120: // 5K/12MP
+                baseBitrateKbps = 15000; // ~15 Mbps
+                break;
+            default:
+                baseBitrateKbps = 4000;
+        }
+
+        // Bandwidth: Convert Kbps to Mbps
+        const bandwidthMbps = baseBitrateKbps / 1000;
+
+        // Storage Calculation (GB per day)
+        // Storage_MB = (Bitrate_kbps * 3600 seconds/hr * 24 hours/day) / (8 bits/byte * 1024 KB/MB * 1024 MB/GB)
+        const totalBitsPerDay = baseBitrateKbps * 1000 * 3600 * 24; // bits/day
+        const totalBytesPerDay = totalBitsPerDay / 8; // bytes/day
+        const storageGBPerDay = totalBytesPerDay / 1024 / 1024 / 1024; // GB/day
+
+        return {
+            bandwidthMbps: parseFloat(bandwidthMbps.toFixed(2)),
+            storageGBPerDay: parseFloat(storageGBPerDay.toFixed(2))
+        };
+    };
+    
+
+    /**
+     * Draws the 2D simulation on the canvas.
+     */
+    const drawSimulation = () => {
+        // Clear canvas
+        canvas.width = canvas.clientWidth;
+        canvas.height = canvas.clientHeight;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Calculate scale: meters per pixel
+        const padding = 20; // Padding from canvas edge
+        // Determine the scale based on the maximum distance to display
+        cameraState.scale = (canvas.height - padding) / cameraState.maxDistance;
+
+        // Origin point (Camera position at the center bottom)
+        const originX = canvas.width / 2;
+        const originY = canvas.height - 5; // Slightly above the very bottom
+
+        // HFOV in radians
+        const hfovRad = toRadians(cameraState.hfov);
+        const halfHFovRad = hfovRad / 2;
+
+        // Function to convert distance (meters) to Y coordinate (pixels)
+        const distToY = (distance) => originY - (distance * cameraState.scale);
+
+        // Function to calculate FoV half-width (meters) at a given distance (D)
+        // W/2 = D * tan(HFOV/2)
+        const fovHalfWidth = (distance) => distance * Math.tan(halfHFovRad);
+
+        // Draw DORI zones from furthest (MON) to nearest (ID)
+        const zones = [
+            { distance: cameraState.doriDistances.MON, color: DORI_COLORS.MON, label: 'MON' },
+            { distance: cameraState.doriDistances.DET, color: DORI_COLORS.DET, label: 'DET' },
+            { distance: cameraState.doriDistances.REC, color: DORI_COLORS.REC, label: 'REC' },
+            { distance: cameraState.doriDistances.ID, color: DORI_COLORS.ID, label: 'ID' }
+        ];
+
+        let prevY = originY;
+        let prevDistance = 0;
+
+        for (let i = 0; i < zones.length; i++) {
+            const zone = zones[i];
+            const startDistance = prevDistance;
+            const endDistance = zone.distance;
+
+            // Don't draw if the max zone is out of bounds or calculation failed
+            if (endDistance <= 0 || endDistance > cameraState.maxDistance + 5) continue;
+            
+            // Draw a wedge for the segment
+            ctx.beginPath();
+            ctx.fillStyle = zone.color;
+            
+            // Start at the camera point (origin)
+            ctx.moveTo(originX, originY);
+            
+            // 1. Arc/line at the start distance (prevDistance) - this makes the cone smooth
+            const startX_Left = originX - (fovHalfWidth(startDistance) * cameraState.scale);
+            const startX_Right = originX + (fovHalfWidth(startDistance) * cameraState.scale);
+            
+            // Draw the start line (prev distance line)
+            if (i > 0) { // Skip for the very first segment (camera origin)
+                ctx.lineTo(startX_Right, distToY(startDistance));
+                ctx.lineTo(startX_Left, distToY(startDistance));
+            }
+
+            // 2. Arc/line at the end distance (zone.distance)
+            const endX_Left = originX - (fovHalfWidth(endDistance) * cameraState.scale);
+            const endX_Right = originX + (fovHalfWidth(endDistance) * cameraState.scale);
+            
+            ctx.lineTo(endX_Right, distToY(endDistance));
+            ctx.lineTo(endX_Left, distToY(endDistance));
+            
+            ctx.closePath();
+            ctx.fill();
+
+            // Update for the next iteration
+            prevDistance = endDistance;
+        }
+        
+        // Finish the cone up to the max draw distance for monitoring area
+        const finalX_Left = originX - (fovHalfWidth(cameraState.maxDistance) * cameraState.scale);
+        const finalX_Right = originX + (fovHalfWidth(cameraState.maxDistance) * cameraState.scale);
+        
+        ctx.beginPath();
+        ctx.fillStyle = 'rgba(59, 130, 246, 0.1)'; // Very light blue for max range
+        ctx.moveTo(originX, originY);
+        ctx.lineTo(finalX_Right, distToY(cameraState.maxDistance));
+        ctx.lineTo(finalX_Left, distToY(cameraState.maxDistance));
+        ctx.closePath();
+        ctx.fill();
+
+
+        // Draw the Camera Icon
+        ctx.beginPath();
+        ctx.arc(originX, originY, 5, 0, 2 * Math.PI);
+        ctx.fillStyle = '#1e3a8a'; // Dark blue for camera
+        ctx.fill();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Draw distance markers (grid)
+        ctx.strokeStyle = '#9ca3af';
+        ctx.lineWidth = 1;
+        ctx.font = '10px Inter';
+        ctx.fillStyle = '#1f2937';
+        for (let d = 5; d <= cameraState.maxDistance; d += 5) {
+            const y = distToY(d);
+            
+            // Draw horizontal line
+            ctx.beginPath();
+            ctx.moveTo(originX - 10, y);
+            ctx.lineTo(canvas.width, y);
+            ctx.setLineDash([5, 5]); // Dashed line
+            ctx.stroke();
+            ctx.setLineDash([]); // Solid line
+
+            // Label
+            ctx.fillText(`${d}m`, originX + 15, y + 3);
+        }
+
+        // Add DORI label lines on the right side
+        ctx.lineWidth = 2;
+        ctx.font = '12px Inter Bold';
+        
+        // Only draw labels for calculated DORI points
+        const sortedDistances = Object.entries(cameraState.doriDistances)
+            .sort((a, b) => b[1] - a[1]) // Sort from far to near
+            .filter(([key, distance]) => distance > 0 && distance <= cameraState.maxDistance);
+
+        sortedDistances.forEach(([key, distance]) => {
+            const y = distToY(distance);
+            const xRight = originX + (fovHalfWidth(distance) * cameraState.scale);
+            
+            // Draw line to the label
+            ctx.beginPath();
+            ctx.strokeStyle = DORI_COLORS[key].replace('0.5', '1'); // Use solid color for line
+            ctx.moveTo(xRight, y);
+            ctx.lineTo(xRight + 30, y); // Short horizontal line
+            ctx.stroke();
+
+            // Draw label
+            let labelText = '';
+            let labelColor = DORI_COLORS[key].replace('0.5', '1');
+            switch(key) {
+                case 'ID': labelText = `ID: ${distance}m`; break;
+                case 'REC': labelText = `REC: ${distance}m`; break;
+                case 'DET': labelText = `DET: ${distance}m`; break;
+                case 'MON': labelText = `MON: ${distance}m`; break;
+            }
+            ctx.fillStyle = labelColor;
+            ctx.fillText(labelText, xRight + 35, y + 4);
+        });
+
+    };
+
+    /**
+     * Main update function: reads inputs, recalculates, and redraws.
+     */
+    const updateSimulation = () => {
+        // Update state from inputs
+        cameraState.resolution = parseInt(document.getElementById('resolution').value);
+        cameraState.sensorSize = parseFloat(document.getElementById('sensorSize').value);
+        cameraState.hfov = parseInt(document.getElementById('hfov').value);
+        cameraState.mountingHeight = parseFloat(document.getElementById('mountingHeight').value);
+
+        // Validate and ensure min/max values are respected
+        cameraState.sensorSize = Math.max(1, Math.min(10, cameraState.sensorSize));
+        cameraState.mountingHeight = Math.max(1, Math.min(10, cameraState.mountingHeight));
+        
+        // Update HFOV display
+        hfovValueSpan.textContent = cameraState.hfov;
+
+        // Perform calculations
+        calculateCoverage();
+        const networkCapacity = calculateNetworkCapacity();
+
+        // Update output fields
+        focalLengthOutput.textContent = `${cameraState.focalLength} mm`;
+        ppm10mOutput.textContent = `${cameraState.ppmAt10m} PPM`;
+        networkOutput.textContent = `${networkCapacity.bandwidthMbps} Mbps / ${networkCapacity.storageGBPerDay} GB/Day`;
+
+        // Redraw canvas
+        drawSimulation();
+    };
+
+    // --- Event Listeners ---
+    
+    // Listen for changes on all form elements
+    configForm.addEventListener('change', updateSimulation);
+    configForm.addEventListener('input', (e) => {
+        // Use 'input' for range slider for smooth updates
+        if (e.target.id === 'hfov') {
+            updateSimulation();
+        }
+    });
+    
+    // Handle responsive resizing
+    window.addEventListener('resize', updateSimulation);
+
+    // Initial run
+    updateSimulation();
+});
+</script>
 </body>
 </html>
-"
